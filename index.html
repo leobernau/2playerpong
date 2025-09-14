@@ -1,111 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bernau Games - 2 Player Pong</title>
-    <style>
-        body {
-            margin: 0;
-            background-color: black;
-            overflow: hidden;
-        }
-        canvas {
-            display: block;
-            background: black;
-        }
-        #menu {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 30px;
-            display: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Bernau Games - 2 Player Pong</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: black;
+        font-family: Arial, sans-serif;
+        height: 100%;
+        width: 100%;
+    }
+    canvas {
+        display: block;
+    }
+    #menu {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        color: white;
+    }
+    #startBtn {
+        padding: 20px 40px;
+        font-size: 24px;
+        background: #444;
+        color: white;
+        border: none;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+    #startBtn:hover {
+        background: #666;
+    }
+</style>
 </head>
 <body>
-    <div id="menu">
-        <button id="startBtn">Start Game</button>
-    </div>
-    <canvas id="pong"></canvas>
-    <script>
-        const canvas = document.getElementById('pong');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
 
-        let paddleWidth = 20, paddleHeight = 100, ballSize = 20;
-        let player1Y = canvas.height / 2 - paddleHeight / 2, player2Y = canvas.height / 2 - paddleHeight / 2;
-        let ballX = canvas.width / 2, ballY = canvas.height / 2, ballSpeedX = 5, ballSpeedY = 5;
-        let player1Score = 0, player2Score = 0, gamePaused = true;
+<div id="menu">
+    <h1>Bernau Games - 2 Player Pong</h1>
+    <button id="startBtn">START</button>
+    <p>Press Space to Start</p>
+</div>
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'red';
-            ctx.fillRect(10, player1Y, paddleWidth, paddleHeight);
-            ctx.fillStyle = 'blue';
-            ctx.fillRect(canvas.width - 30, player2Y, paddleWidth, paddleHeight);
-            ctx.fillStyle = 'white';
-            ctx.fillRect(ballX, ballY, ballSize, ballSize);
-            ctx.fillText(`Score: ${player1Score + player2Score}`, canvas.width / 2 - 50, 50);
+<canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let cw, ch;
+function resize() {
+    cw = canvas.width = window.innerWidth;
+    ch = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Game Variables
+let paddleHeight = 150;
+let paddleWidth = 30;
+let ballRadius = 20;
+let player1Y = ch/2 - paddleHeight/2;
+let player2Y = ch/2 - paddleHeight/2;
+let playerSpeed = 10;
+let ballX = cw/2;
+let ballY = ch/2;
+let ballSpeedX = 5;
+let ballSpeedY = 5;
+let baseBallSpeed = 5;
+let score = 0;
+let gameRunning = false;
+let gamePaused = false;
+
+// Key Presses
+const keys = {};
+
+// Event Listeners
+window.addEventListener('keydown', e => {
+    keys[e.key.toLowerCase()] = true;
+
+    if(e.key === 'p') gamePaused = !gamePaused;
+    if(e.key === 'r') resetGame();
+    if(e.key === ' ') startGame();
+});
+
+window.addEventListener('keyup', e => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+// Menu Button
+document.getElementById("startBtn").addEventListener('click', startGame);
+
+// Start Game
+function startGame() {
+    score = 0;
+    baseBallSpeed = 5;
+    ballSpeedX = baseBallSpeed * (Math.random() > 0.5 ? 1 : -1);
+    ballSpeedY = baseBallSpeed * (Math.random() > 0.5 ? 1 : -1);
+    player1Y = ch/2 - paddleHeight/2;
+    player2Y = ch/2 - paddleHeight/2;
+    ballX = cw/2;
+    ballY = ch/2;
+    gameRunning = true;
+    gamePaused = false;
+    document.getElementById("menu").style.display = 'none';
+    requestAnimationFrame(gameLoop);
+}
+
+// Reset Game
+function resetGame() {
+    gameRunning = false;
+    document.getElementById("menu").style.display = 'block';
+}
+
+// Game Loop
+function gameLoop() {
+    if(!gameRunning) return;
+
+    if(!gamePaused) update();
+    draw();
+
+    requestAnimationFrame(gameLoop);
+}
+
+// Update Game
+function update() {
+    // Move Paddles
+    if(keys['w'] && player1Y > 0) player1Y -= playerSpeed;
+    if(keys['s'] && player1Y + paddleHeight < ch) player1Y += playerSpeed;
+    if(keys['arrowup'] && player2Y > 0) player2Y -= playerSpeed;
+    if(keys['arrowdown'] && player2Y + paddleHeight < ch) player2Y += playerSpeed;
+
+    // Move Ball
+    ballX += ballSpeedX;
+    ballY += ballSpeedY;
+
+    // Ball Collision with Top/Bottom
+    if(ballY - ballRadius < 0 || ballY + ballRadius > ch) ballSpeedY *= -1;
+
+    // Ball Collision with Paddles
+    if(ballX - ballRadius < paddleWidth) {
+        if(ballY > player1Y && ballY < player1Y + paddleHeight) {
+            ballSpeedX *= -1;
+            score++;
+            updateBallSpeed();
+        } else {
+            resetGame();
         }
-
-        function update() {
-            if (!gamePaused) {
-                ballX += ballSpeedX;
-                ballY += ballSpeedY;
-
-                if (ballY + ballSize > canvas.height || ballY < 0) ballSpeedY = -ballSpeedY;
-
-                if (ballX < 30 && ballY > player1Y && ballY < player1Y + paddleHeight) {
-                    ballSpeedX = -ballSpeedX;
-                    player1Score++;
-                    ballSpeedX += 0.1; ballSpeedY += 0.1;
-                }
-                if (ballX + ballSize > canvas.width - 30 && ballY > player2Y && ballY < player2Y + paddleHeight) {
-                    ballSpeedX = -ballSpeedX;
-                    player2Score++;
-                    ballSpeedX += 0.1; ballSpeedY += 0.1;
-                }
-                if (ballX < 0 || ballX > canvas.width) {
-                    resetGame();
-                }
-            }
-            draw();
-            requestAnimationFrame(update);
+    }
+    if(ballX + ballRadius > cw - paddleWidth) {
+        if(ballY > player2Y && ballY < player2Y + paddleHeight) {
+            ballSpeedX *= -1;
+            score++;
+            updateBallSpeed();
+        } else {
+            resetGame();
         }
+    }
+}
 
-        function resetGame() {
-            player1Score = 0;
-            player2Score = 0;
-            ballX = canvas.width / 2;
-            ballY = canvas.height / 2;
-            ballSpeedX = 5;
-            ballSpeedY = 5;
-            gamePaused = true;
-            document.getElementById('menu').style.display = 'block';
-        }
+// Increase Ball Speed Based on Score
+function updateBallSpeed() {
+    let speed = baseBallSpeed + score * 0.5;
+    ballSpeedX = (ballSpeedX > 0 ? 1 : -1) * speed;
+    ballSpeedY = (ballSpeedY > 0 ? 1 : -1) * speed;
+}
 
-        document.getElementById('startBtn').addEventListener('click', () => {
-            gamePaused = false;
-            document.getElementById('menu').style.display = 'none';
-            update();
-        });
+// Draw Game
+function draw() {
+    // Draw Background (City at Night)
+    let city = new Image();
+    city.src = "https://images.unsplash.com/photo-1531746790731-6c087fecd65f?auto=format&fit=crop&w=1920&q=80"; // public domain city night image
+    ctx.drawImage(city, 0, 0, cw, ch);
 
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'w' && player1Y > 0) player1Y -= 10;
-            if (event.key === 's' && player1Y < canvas.height - paddleHeight) player1Y += 10;
-            if (event.key === 'ArrowUp' && player2Y > 0) player2Y -= 10;
-            if (event.key === 'ArrowDown' && player2Y < canvas.height - paddleHeight) player2Y += 10;
-            if (event.key === 'p') gamePaused = !gamePaused;
-            if (event.key === 'r') resetGame();
-        });
+    // Overlay to darken
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(0,0,cw,ch);
 
-        window.onload = () => {
-            document.getElementById('menu').style.display = 'block';
-        };
-    </script>
+    // Draw Paddles
+    ctx.fillStyle = 'red';
+    ctx.fillRect(0, player1Y, paddleWidth, paddleHeight);
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(cw - paddleWidth, player2Y, paddleWidth, paddleHeight);
+
+    // Draw Ball
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(ballX, ballY, ballRadius, 0, Math.PI*2);
+    ctx.fill();
+
+    // Draw Score
+    ctx.fillStyle = 'white';
+    ctx.font = '80px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(score, cw/2, 100);
+
+    // Draw Pause
+    if(gamePaused){
+        ctx.fillStyle = 'yellow';
+        ctx.font = '60px Arial';
+        ctx.fillText("PAUSED", cw/2, ch/2);
+    }
+}
+</script>
 </body>
 </html>
