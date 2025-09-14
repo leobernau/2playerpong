@@ -1,1 +1,58 @@
+# Tetris Game
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+        }
+        canvas {
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="tetris" width="240" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('tetris');
+        const context = canvas.getContext('2d');
+        context.scale(20, 20);
+
+        function drawSquare(x, y) {
+            context.fillStyle = 'white';
+            context.fillRect(x, y, 1, 1);
+        }
+
+        function drawBoard() {
+            for (let y = 0; y < 20; y++) {
+                for (let x = 0; x < 10; x++) {
+                    drawSquare(x, y);
+                }
+            }
+        }
+
+        drawBoard();
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft') {
+                // Move left
+            } else if (event.key === 'ArrowRight') {
+                // Move right
+            } else if (event.key === 'ArrowDown') {
+                // Move down
+            } else if (event.key === 'ArrowUp') {
+                // Rotate
+            }
+        });
+    </script>
+</body>
+</html>
 
