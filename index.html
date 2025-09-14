@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2 Player Pong</title>
+    <title>Bernau Games - 2 Player Pong</title>
     <style>
         body {
             margin: 0;
@@ -27,11 +27,11 @@
 </head>
 <body>
     <div id="menu">
-        <button id="startButton">Start Game</button>
+        <button id="startBtn">Start Game</button>
     </div>
-    <canvas id="pongCanvas"></canvas>
+    <canvas id="pong"></canvas>
     <script>
-        const canvas = document.getElementById('pongCanvas');
+        const canvas = document.getElementById('pong');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -39,8 +39,7 @@
         let paddleWidth = 20, paddleHeight = 100, ballSize = 20;
         let player1Y = canvas.height / 2 - paddleHeight / 2, player2Y = canvas.height / 2 - paddleHeight / 2;
         let ballX = canvas.width / 2, ballY = canvas.height / 2, ballSpeedX = 5, ballSpeedY = 5;
-        let player1Score = 0, player2Score = 0;
-        let gamePaused = true;
+        let player1Score = 0, player2Score = 0, gamePaused = true;
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -50,8 +49,7 @@
             ctx.fillRect(canvas.width - 30, player2Y, paddleWidth, paddleHeight);
             ctx.fillStyle = 'white';
             ctx.fillRect(ballX, ballY, ballSize, ballSize);
-            ctx.fillText(player1Score, canvas.width / 4, 50);
-            ctx.fillText(player2Score, canvas.width * 3 / 4, 50);
+            ctx.fillText(`Score: ${player1Score + player2Score}`, canvas.width / 2 - 50, 50);
         }
 
         function update() {
@@ -59,24 +57,24 @@
                 ballX += ballSpeedX;
                 ballY += ballSpeedY;
 
-                if (ballY + ballSize > canvas.height || ballY < 0) {
-                    ballSpeedY = -ballSpeedY;
-                }
+                if (ballY + ballSize > canvas.height || ballY < 0) ballSpeedY = -ballSpeedY;
 
                 if (ballX < 30 && ballY > player1Y && ballY < player1Y + paddleHeight) {
                     ballSpeedX = -ballSpeedX;
                     player1Score++;
-                    ballSpeedX *= 1.05;
-                    ballSpeedY *= 1.05;
-                } else if (ballX + ballSize > canvas.width - 30 && ballY > player2Y && ballY < player2Y + paddleHeight) {
+                    ballSpeedX += 0.1; ballSpeedY += 0.1;
+                }
+                if (ballX + ballSize > canvas.width - 30 && ballY > player2Y && ballY < player2Y + paddleHeight) {
                     ballSpeedX = -ballSpeedX;
                     player2Score++;
-                    ballSpeedX *= 1.05;
-                    ballSpeedY *= 1.05;
-                } else if (ballX < 0 || ballX > canvas.width) {
+                    ballSpeedX += 0.1; ballSpeedY += 0.1;
+                }
+                if (ballX < 0 || ballX > canvas.width) {
                     resetGame();
                 }
             }
+            draw();
+            requestAnimationFrame(update);
         }
 
         function resetGame() {
@@ -90,33 +88,24 @@
             document.getElementById('menu').style.display = 'block';
         }
 
-        function gameLoop() {
-            draw();
-            update();
-            requestAnimationFrame(gameLoop);
-        }
-
-        document.getElementById('startButton').addEventListener('click', () => {
+        document.getElementById('startBtn').addEventListener('click', () => {
             gamePaused = false;
             document.getElementById('menu').style.display = 'none';
-            gameLoop();
+            update();
         });
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'w' && player1Y > 0) player1Y -= 20;
-            if (event.key === 's' && player1Y < canvas.height - paddleHeight) player1Y += 20;
-            if (event.key === 'ArrowUp' && player2Y > 0) player2Y -= 20;
-            if (event.key === 'ArrowDown' && player2Y < canvas.height - paddleHeight) player2Y += 20;
+            if (event.key === 'w' && player1Y > 0) player1Y -= 10;
+            if (event.key === 's' && player1Y < canvas.height - paddleHeight) player1Y += 10;
+            if (event.key === 'ArrowUp' && player2Y > 0) player2Y -= 10;
+            if (event.key === 'ArrowDown' && player2Y < canvas.height - paddleHeight) player2Y += 10;
             if (event.key === 'p') gamePaused = !gamePaused;
             if (event.key === 'r') resetGame();
         });
 
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-
-        document.getElementById('menu').style.display = 'block';
+        window.onload = () => {
+            document.getElementById('menu').style.display = 'block';
+        };
     </script>
 </body>
 </html>
