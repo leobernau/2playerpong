@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bernau Games - 2 Player Pong</title>
+<title>2 Player Pong</title>
 <style>
     html, body {
         margin: 0;
@@ -142,22 +142,25 @@ function update() {
     // Ball Collision with Top/Bottom
     if(ballY - ballRadius < 0 || ballY + ballRadius > ch) ballSpeedY *= -1;
 
-    // Ball Collision with Paddles
+    // Ball Collision with Paddles or death behind them
+    // Left Paddle (Red)
     if(ballX - ballRadius < paddleWidth) {
         if(ballY > player1Y && ballY < player1Y + paddleHeight) {
             ballSpeedX *= -1;
             score++;
             updateBallSpeed();
-        } else {
+        } else if(ballX - ballRadius <= 0) { // die only after fully behind paddle
             resetGame();
         }
     }
+
+    // Right Paddle (Blue)
     if(ballX + ballRadius > cw - paddleWidth) {
         if(ballY > player2Y && ballY < player2Y + paddleHeight) {
             ballSpeedX *= -1;
             score++;
             updateBallSpeed();
-        } else {
+        } else if(ballX + ballRadius >= cw) { // die only after fully behind paddle
             resetGame();
         }
     }
